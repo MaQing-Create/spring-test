@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.apache.logging.log4j.util.Strings;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Builder
@@ -28,9 +29,8 @@ public class RsEventDto {
     private int rank = 0;
     @Builder.Default
     private int price = 0;
-    @OneToOne(cascade = CascadeType.REMOVE, mappedBy = "rsEvent")
-    @JoinColumn
-    private TradeDto trade;
+    @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "rsEvent")
+    private List<TradeDto> trade;
 
 
     public String toString(){

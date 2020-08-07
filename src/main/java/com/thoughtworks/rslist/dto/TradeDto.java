@@ -20,7 +20,6 @@ public class TradeDto {
     private int id;
     private int amount;
     private int rank;
-    @OneToOne
-    @JoinColumn
+    @ManyToOne
     private RsEventDto rsEvent;
 }

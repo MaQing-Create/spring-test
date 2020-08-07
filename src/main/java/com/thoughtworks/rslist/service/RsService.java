@@ -71,13 +71,11 @@ public class RsService {
         rsEventDto.setRank(trade.getRank());
         rsEventDto.setPrice(trade.getAmount());
         rsEventRepository.save(rsEventDto);
-        if (rsEventDtoAtRank.isPresent()) {
-            int idee = rsEventDtoAtRank.get().getId();
-            rsEventRepository.deleteById(idee);
+        if (rsEventDtoAtRank.isPresent() && rsEventDtoAtRank.get().getId() != rsEventDto.getId()) {
+            rsEventRepository.deleteById(rsEventDtoAtRank.get().getId());
         }
         TradeDto tradeDto =
                 TradeDto.builder().amount(trade.getAmount()).rank(trade.getRank()).rsEvent(rsEventDto).build();
-//        TradeDto tradeDto = TradeDto.builder().amount(trade.getAmount()).rank(trade.getRank()).build();
         tradeRepository.save(tradeDto);
     }
 

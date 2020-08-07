@@ -48,9 +48,9 @@ class RsControllerTest {
     @BeforeEach
     void setUp() {
         voteRepository.deleteAll();
-        tradeRepository.deleteAll();
-        rsEventRepository.deleteAll();
         userRepository.deleteAll();
+        rsEventRepository.deleteAll();
+        tradeRepository.deleteAll();
         userDto =
                 UserDto.builder()
                         .voteNum(10)
@@ -218,10 +218,8 @@ class RsControllerTest {
 
 
         mockMvc.perform(post("/rs/buy/3").content(trade1Json).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
-//        assertEquals(tradeRepository.count(),1);
         mockMvc.perform(get("/rs/1")).andExpect(jsonPath("$.eventName", is("第三条事件")));
         mockMvc.perform(post("/rs/buy/3").content(trade2Json).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
-//        assertEquals(tradeRepository.count(),1);
         mockMvc.perform(post("/rs/buy/3").content(trade3Json).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
         mockMvc
                 .perform(get("/rs/list"))
@@ -230,6 +228,5 @@ class RsControllerTest {
                 .andExpect(jsonPath("$[0].keyword", is("无分类")))
                 .andExpect(jsonPath("$[1].eventName", is("第一条事件")))
                 .andExpect(jsonPath("$[1].keyword", is("无分类")));
-//        assertEquals(tradeRepository.count(),2);
     }
 }
