@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface RsEventRepository extends CrudRepository<RsEventDto, Integer> {
-  List<RsEventDto> findAll();
+    List<RsEventDto> findAll();
 
-  @Transactional
-  void deleteAllByUserId(int userId);
+    @Transactional
+    void deleteAllByUserId(int userId);
 
     Optional<RsEventDto> findByRank(int rank);
 }

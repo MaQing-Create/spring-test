@@ -48,7 +48,7 @@ class RsControllerTest {
     @BeforeEach
     void setUp() {
         voteRepository.deleteAll();
-//        tradeRepository.deleteAll();
+        tradeRepository.deleteAll();
         rsEventRepository.deleteAll();
         userRepository.deleteAll();
         userDto =

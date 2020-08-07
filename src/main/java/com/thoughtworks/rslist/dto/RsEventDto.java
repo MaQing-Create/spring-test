@@ -4,12 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.logging.log4j.util.Strings;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Builder
@@ -31,4 +28,12 @@ public class RsEventDto {
     private int rank = 0;
     @Builder.Default
     private int price = 0;
+    @OneToOne(cascade = CascadeType.REMOVE, mappedBy = "rsEvent")
+    @JoinColumn
+    private TradeDto trade;
+
+
+    public String toString(){
+        return Integer.toString(id);
+    }
 }
