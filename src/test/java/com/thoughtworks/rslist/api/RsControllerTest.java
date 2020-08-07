@@ -1,5 +1,6 @@
 package com.thoughtworks.rslist.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thoughtworks.rslist.domain.Trade;
 import com.thoughtworks.rslist.dto.RsEventDto;
@@ -211,16 +212,53 @@ class RsControllerTest {
 
         Trade trade1 = Trade.builder().amount(10).rank(1).build();
         String trade1Json = mapper.writeValueAsString(trade1);
-        Trade trade2 = Trade.builder().amount(5).rank(1).build();
-        String trade2Json = mapper.writeValueAsString(trade2);
-        Trade trade3 = Trade.builder().amount(15).rank(1).build();
-        String trade3Json = mapper.writeValueAsString(trade3);
-
 
         mockMvc.perform(post("/rs/buy/3").content(trade1Json).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
         mockMvc.perform(get("/rs/1")).andExpect(jsonPath("$.eventName", is("第三条事件")));
+    }
+
+    @Test
+    public void shouldBuyRsFailedWhenAmountNotEnough() throws Exception {
+        UserDto save = userRepository.save(userDto);
+
+        RsEventDto rsEventDto =
+                RsEventDto.builder().keyword("无分类").eventName("第一条事件").user(save).build();
+        rsEventRepository.save(rsEventDto);
+        rsEventDto = RsEventDto.builder().keyword("无分类").eventName("第二条事件").user(save).build();
+        rsEventRepository.save(rsEventDto);
+        rsEventDto = RsEventDto.builder().keyword("无分类").eventName("第三条事件").user(save).build();
+        rsEventRepository.save(rsEventDto);
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        Trade trade1 = Trade.builder().amount(10).rank(1).build();
+        String trade1Json = mapper.writeValueAsString(trade1);
+        Trade trade2 = Trade.builder().amount(5).rank(1).build();
+        String trade2Json = mapper.writeValueAsString(trade2);
+        mockMvc.perform(post("/rs/buy/3").content(trade1Json).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
         mockMvc.perform(post("/rs/buy/3").content(trade2Json).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
-        mockMvc.perform(post("/rs/buy/3").content(trade3Json).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+    }
+
+    @Test
+    public void shouldDeleteRsWhenRankIsBought() throws Exception {
+        UserDto save = userRepository.save(userDto);
+
+        RsEventDto rsEventDto =
+                RsEventDto.builder().keyword("无分类").eventName("第一条事件").user(save).build();
+        rsEventRepository.save(rsEventDto);
+        rsEventDto = RsEventDto.builder().keyword("无分类").eventName("第二条事件").user(save).build();
+        rsEventRepository.save(rsEventDto);
+        rsEventDto = RsEventDto.builder().keyword("无分类").eventName("第三条事件").user(save).build();
+        rsEventRepository.save(rsEventDto);
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        Trade trade1 = Trade.builder().amount(10).rank(1).build();
+        String trade1Json = mapper.writeValueAsString(trade1);
+        Trade trade2 = Trade.builder().amount(15).rank(1).build();
+        String trade2Json = mapper.writeValueAsString(trade2);
+        mockMvc.perform(post("/rs/buy/3").content(trade1Json).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+        mockMvc.perform(post("/rs/buy/3").content(trade2Json).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
         mockMvc
                 .perform(get("/rs/list"))
                 .andExpect(jsonPath("$", hasSize(2)))
@@ -228,5 +266,28 @@ class RsControllerTest {
                 .andExpect(jsonPath("$[0].keyword", is("无分类")))
                 .andExpect(jsonPath("$[1].eventName", is("第一条事件")))
                 .andExpect(jsonPath("$[1].keyword", is("无分类")));
+    }
+
+    @Test
+    public void shouldAddTradeRecordIntoDatabase() throws Exception {
+        UserDto save = userRepository.save(userDto);
+
+        RsEventDto rsEventDto =
+                RsEventDto.builder().keyword("无分类").eventName("第一条事件").user(save).build();
+        rsEventRepository.save(rsEventDto);
+        rsEventDto = RsEventDto.builder().keyword("无分类").eventName("第二条事件").user(save).build();
+        rsEventRepository.save(rsEventDto);
+        rsEventDto = RsEventDto.builder().keyword("无分类").eventName("第三条事件").user(save).build();
+        rsEventDto = rsEventRepository.save(rsEventDto);
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        Trade trade1 = Trade.builder().amount(10).rank(1).build();
+        String trade1Json = mapper.writeValueAsString(trade1);
+
+        mockMvc.perform(post("/rs/buy/3").content(trade1Json).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+        assertEquals(10, tradeRepository.findAll().get(0).getAmount());
+        assertEquals(1, tradeRepository.findAll().get(0).getRank());
+        assertEquals(rsEventDto.getId(), tradeRepository.findAll().get(0).getRsEvent().getId());
     }
 }
