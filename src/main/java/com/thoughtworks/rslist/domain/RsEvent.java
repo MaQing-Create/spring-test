@@ -13,8 +13,16 @@ import java.io.Serializable;
 @Builder
 @Data
 public class RsEvent implements Serializable {
-  @NotNull private String eventName;
-  @NotNull private String keyword;
-  private int voteNum;
-  @NotNull private int userId;
+    @NotNull
+    private String eventName;
+    @NotNull
+    private String keyword;
+    @Builder.Default
+    private int voteNum = 0;
+    @NotNull
+    private int userId;
+    @Builder.Default
+    private int rank = 0;
+    @Builder.Default
+    private int price = 0;
 }
