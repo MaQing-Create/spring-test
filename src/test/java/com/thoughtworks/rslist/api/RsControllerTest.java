@@ -162,7 +162,7 @@ class RsControllerTest {
     }
 
     @Test
-    public void shouldAddRsEventWhenUserNotExist() throws Exception {
+    public void shouldAddRsEventFailedWhenUserNotExist() throws Exception {
         String jsonValue = "{\"eventName\":\"猪肉涨价了\",\"keyword\":\"经济\",\"userId\": 100}";
         mockMvc
                 .perform(post("/rs/event").content(jsonValue).contentType(MediaType.APPLICATION_JSON))
@@ -236,7 +236,9 @@ class RsControllerTest {
         Trade trade2 = Trade.builder().amount(5).rank(1).build();
         String trade2Json = mapper.writeValueAsString(trade2);
         mockMvc.perform(post("/rs/buy/3").content(trade1Json).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
-        mockMvc.perform(post("/rs/buy/3").content(trade2Json).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
+        mockMvc.perform(post("/rs/buy/3").content(trade2Json).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error",is("Sorry! Your offer is too low!")))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -269,6 +271,73 @@ class RsControllerTest {
     }
 
     @Test
+    public void shouldThrowExceptionWhenBoughtRankLessThanOne() throws Exception {
+        UserDto save = userRepository.save(userDto);
+
+        RsEventDto rsEventDto =
+                RsEventDto.builder().keyword("无分类").eventName("第一条事件").user(save).build();
+        rsEventRepository.save(rsEventDto);
+        rsEventDto = RsEventDto.builder().keyword("无分类").eventName("第二条事件").user(save).build();
+        rsEventRepository.save(rsEventDto);
+        rsEventDto = RsEventDto.builder().keyword("无分类").eventName("第三条事件").user(save).build();
+        rsEventRepository.save(rsEventDto);
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        Trade trade1 = Trade.builder().amount(10).rank(0).build();
+        String trade1Json = mapper.writeValueAsString(trade1);
+
+        mockMvc.perform(post("/rs/buy/3").content(trade1Json).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error",is("Sorry! Rank should larger than zero!")))
+                .andExpect(status().isBadRequest());
+
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenBoughtRankLargerThenRsListSize() throws Exception {
+        UserDto save = userRepository.save(userDto);
+
+        RsEventDto rsEventDto =
+                RsEventDto.builder().keyword("无分类").eventName("第一条事件").user(save).build();
+        rsEventRepository.save(rsEventDto);
+        rsEventDto = RsEventDto.builder().keyword("无分类").eventName("第二条事件").user(save).build();
+        rsEventRepository.save(rsEventDto);
+        rsEventDto = RsEventDto.builder().keyword("无分类").eventName("第三条事件").user(save).build();
+        rsEventRepository.save(rsEventDto);
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        Trade trade1 = Trade.builder().amount(10).rank(4).build();
+        String trade1Json = mapper.writeValueAsString(trade1);
+
+        mockMvc.perform(post("/rs/buy/3").content(trade1Json).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error",is("Sorry! Rs rank does not exist!")))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenRsNotExists() throws Exception {
+        UserDto save = userRepository.save(userDto);
+
+        RsEventDto rsEventDto =
+                RsEventDto.builder().keyword("无分类").eventName("第一条事件").user(save).build();
+        rsEventRepository.save(rsEventDto);
+        rsEventDto = RsEventDto.builder().keyword("无分类").eventName("第二条事件").user(save).build();
+        rsEventRepository.save(rsEventDto);
+        rsEventDto = RsEventDto.builder().keyword("无分类").eventName("第三条事件").user(save).build();
+        rsEventRepository.save(rsEventDto);
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        Trade trade1 = Trade.builder().amount(10).rank(3).build();
+        String trade1Json = mapper.writeValueAsString(trade1);
+
+        mockMvc.perform(post("/rs/buy/4").content(trade1Json).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error",is("invalid index")))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     public void shouldAddTradeRecordIntoDatabase() throws Exception {
         UserDto save = userRepository.save(userDto);
 
@@ -290,4 +359,5 @@ class RsControllerTest {
         assertEquals(1, tradeRepository.findAll().get(0).getRank());
         assertEquals(rsEventDto.getId(), tradeRepository.findAll().get(0).getRsEvent().getId());
     }
+
 }

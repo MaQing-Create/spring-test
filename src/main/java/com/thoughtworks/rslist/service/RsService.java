@@ -63,6 +63,7 @@ public class RsService {
     public void buy(Trade trade, int id) {
         if (trade.getRank() < 1) throw new RequestNotValidException("Sorry! Rank should larger than zero!");
         List<RsEventDto> rsEventDtos = sortRsEventList(rsEventRepository.findAll());
+        if (trade.getRank() > rsEventDtos.size()) throw new RequestNotValidException("Sorry! Rs rank does not exist!");
         RsEventDto rsEventDto = commonMethod.getElementFromList(id, rsEventDtos);
         Optional<RsEventDto> rsEventDtoAtRank = rsEventRepository.findByRank(trade.getRank());
         if (rsEventDtoAtRank.isPresent() && rsEventDtoAtRank.get().getPrice() >= trade.getAmount()) {
@@ -82,7 +83,7 @@ public class RsService {
     public List<RsEventDto> sortRsEventList(List<RsEventDto> list) {
         if (list.size() < 2)
             return list;
-        List<RsEventDto> pricedRsEventDtos = new ArrayList<RsEventDto>();
+        List<RsEventDto> pricedRsEventDtos = new ArrayList<>();
         for (int i = list.size() - 1; i > -1; i--) {
             if (list.get(i).getRank() > 0) {
                 pricedRsEventDtos.add(list.get(i));
